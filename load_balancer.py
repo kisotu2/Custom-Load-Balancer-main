@@ -1,139 +1,150 @@
-import os
-import uuid
-import json
-import subprocess
-import sys
-import traceback
 from flask import Flask, request, jsonify
-
-# Import consistent hashing class from Task 2
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'custom_hash')))
-from client.consistent_hash import ConsistentHash
+import requests
+from consistent_hash import ConsistentHash
 
 app = Flask(__name__)
-ch = ConsistentHash()
-servers = {}  # container_id → hostname
 
-@app.route('/rep', methods=['GET'])
+
+hash_ring = ConsistentHash()
+
+
+servers = {
+    "server1": "http://server1:5000",
+    "server2": "http://server2:5000",
+    "server3": "http://server3:5000"
+}
+
+for server in servers:
+    hash_ring.add_server(server)
+
+
+@app.route("/rep", methods=["GET"])
 def replicas():
     return jsonify({
         "message": {
             "N": len(servers),
-            "replicas": list(servers.values())
+            "replicas": list(servers.keys())
         },
         "status": "successful"
     }), 200
 
-@app.route('/add', methods=['POST'])
+
+
+@app.route("/add", methods=["POST"])
 def add_servers():
+
     data = request.get_json()
+
     n = data.get("n", 0)
     hostnames = data.get("hostnames", [])
 
-    if len(hostnames) > n:
+    if len(hostnames) != n:
         return jsonify({
-            "message": "<Error> Length of hostname list is more than newly added instances",
+            "message": "Hostnames length must equal n",
             "status": "failure"
         }), 400
 
-    added = []
+    for host in hostnames:
 
-    for i in range(n):
-        name = hostnames[i] if i < len(hostnames) else f"server-{uuid.uuid4().hex[:6]}"
-        cmd = f"docker run -d --rm --name {name} -e SERVER_ID={i+1} -p 0:5000 simple-server"
-        result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE)
-        container_id = result.stdout.decode().strip()
+        if host in servers:
+            continue
 
-        if container_id:
-            servers[container_id] = name
-            ch.add_server(name)
-            added.append(name)
+        servers[host] = f"http://{host}:5000"
+        hash_ring.add_server(host)
 
     return jsonify({
         "message": {
             "N": len(servers),
-            "replicas": list(servers.values())
+            "replicas": list(servers.keys())
         },
         "status": "successful"
     }), 200
 
-@app.route('/rm', methods=['DELETE'])
+
+
+@app.route("/rm", methods=["DELETE"])
 def remove_servers():
+
     data = request.get_json()
+
     n = data.get("n", 0)
     hostnames = data.get("hostnames", [])
-
-    if len(hostnames) > n:
-        return jsonify({
-            "message": "<Error> Length of hostname list is more than removable instances",
-            "status": "failure"
-        }), 400
-
-    removed = []
 
     if hostnames:
-        for h in hostnames:
-            cid = next((k for k, v in servers.items() if v == h), None)
-            if cid:
-                subprocess.run(f"docker stop {h}", shell=True)
-                ch.remove_server(h)
-                removed.append(servers.pop(cid))
+
+        if len(hostnames) != n:
+            return jsonify({
+                "message": "Hostnames length must equal n",
+                "status": "failure"
+            }), 400
+
+        for host in hostnames:
+
+            if host in servers:
+                hash_ring.remove_server(host)
+                servers.pop(host)
+
     else:
-        to_remove = list(servers.items())[:n]
-        for cid, h in to_remove:
-            subprocess.run(f"docker stop {h}", shell=True)
-            ch.remove_server(h)
-            removed.append(servers.pop(cid))
+
+        removable = list(servers.keys())[:n]
+
+        for host in removable:
+            hash_ring.remove_server(host)
+            servers.pop(host)
 
     return jsonify({
         "message": {
             "N": len(servers),
-            "replicas": list(servers.values())
+            "replicas": list(servers.keys())
         },
         "status": "successful"
     }), 200
 
-@app.route('/home', methods=['GET'])
-def route_request():
-    req_id = request.args.get("id", "")
-    target_server = ch.get_server(req_id)
 
-    if not target_server:
-        return jsonify({
-            "message": "<Error> No server found to handle this request",
-            "status": "failure"
-        }), 400
+@app.route("/home", methods=["GET"])
+def home():
 
-    # Find container ID and get port
-    cid = next((k for k, v in servers.items() if v == target_server), None)
-    if not cid:
-        return jsonify({
-            "message": "<Error> Target container not found",
-            "status": "failure"
-        }), 404
+    request_id = request.args.get("id", "")
 
-    try:
-        inspect_cmd = [
-            "docker", "inspect", cid,
-            "--format", "{{(index (index .NetworkSettings.Ports \"5000/tcp\") 0).HostPort}}"
-        ]
-        port = subprocess.check_output(inspect_cmd).decode().strip()
+    server = hash_ring.get_server(request_id)
 
-        import requests
-        res = requests.get(f"http://localhost:{port}/home", timeout=2)
+    if server is None:
 
         return jsonify({
-            "forwarded_to": target_server,
-            "handled_by_container": cid,
-            "container_response": res.json()
-        }), 200
-
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({
-            "message": f"<Error> {str(e)}",
+            "message": "No available server",
             "status": "failure"
         }), 500
 
+    try:
+
+        response = requests.get(
+            servers[server] + "/home",
+            timeout=2
+        )
+
+        return jsonify({
+            "forwarded_to": server,
+            "response": response.json()
+        }), response.status_code
+
+    except Exception as e:
+
+        return jsonify({
+            "message": str(e),
+            "status": "failure"
+        }), 500
+
+
+@app.route("/heartbeat", methods=["GET"])
+def heartbeat():
+    return jsonify({
+        "status": "alive"
+    }), 200
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=6000)
+    app.run(
+        host="0.0.0.0",
+        port=6000,
+        debug=False
+    )
