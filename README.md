@@ -126,7 +126,7 @@ The application should start four containers:
 
 ### Running Containers
 
-![Running Containers](docker-containers.png)
+![Running Containers](screenshots:docker-containers.png)
 
 ---
 
