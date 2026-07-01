@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify
 
 # Import consistent hashing class from Task 2
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'custom_hash')))
-from consistent_hash import ConsistentHash
+from client.consistent_hash import ConsistentHash
 
 app = Flask(__name__)
 ch = ConsistentHash()

@@ -1,23 +1,38 @@
-version: '3.8'
-
 services:
+  load_balancer:
+    build: .
+    container_name: load_balancer
+    ports:
+      - "6000:6000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/app
+    privileged: true
+    depends_on:
+      - server1
+      - server2
+      - server3
+
   server1:
     build: ./server
+    container_name: server1
     ports:
       - "5001:5000"
     environment:
-      - SERVER_ID=server1
+      SERVER_ID: server1
 
   server2:
     build: ./server
+    container_name: server2
     ports:
       - "5002:5000"
     environment:
-      - SERVER_ID=server2
+      SERVER_ID: server2
 
   server3:
     build: ./server
+    container_name: server3
     ports:
       - "5003:5000"
     environment:
-      - SERVER_ID=server3
+      SERVER_ID: server3

@@ -1,13 +1,9 @@
-FROM python:3.12.3-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY server.py requirements.txt ./
+COPY . .
 
-RUN pip install --no-cache-dir -r requirements.txt
-
-ENV SERVER_ID="default"
-
-EXPOSE 5000
+RUN pip install --no-cache-dir flask
 
 CMD ["python", "server.py"]
