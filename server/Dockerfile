@@ -1,0 +1,13 @@
+FROM python:3.12.3-slim
+
+WORKDIR /app
+
+COPY server.py requirements.txt ./
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+ENV SERVER_ID="default"
+
+EXPOSE 5000
+
+CMD ["python", "server.py"]
