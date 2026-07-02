@@ -33,18 +33,16 @@ The project aims to:
 # System Architecture
 
 ```
-                   Client
+                    Client
                       │
-                      │ HTTP Request
                       ▼
-            +----------------------+
-            |    Load Balancer     |
-            |  Consistent Hashing  |
-            +----------------------+
-               │        │        │
-        ───────┘        │        └───────
-              ▼        ▼               ▼
-          Server1    Server2        Server3
+             +----------------+
+             | Load Balancer  |
+             | Consistent Hash|
+             +----------------+
+                │    │    │
+                ▼    ▼    ▼
+           Server1 Server2 Server3
 ```
 
 ---
