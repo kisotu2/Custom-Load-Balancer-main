@@ -309,7 +309,6 @@ docker start server2
 The remaining replicas continued serving requests successfully.
 
 > **Insert Screenshot**
-
 ```
 <img width="1452" height="112" alt="image" src="https://github.com/user-attachments/assets/bd0b84c4-95c1-4824-9b9e-c2f57f3ac290" />
 ```
