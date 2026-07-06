@@ -311,10 +311,20 @@ The remaining replicas continued serving requests successfully.
 > **Insert Screenshot**
 
 ```
-screenshots/failure-recovery.png
-```
+<img width="1452" height="112" alt="image" src="https://github.com/user-attachments/assets/bd0b84c4-95c1-4824-9b9e-c2f57f3ac290" />
 
----
+```
+<img width="2340" height="208" alt="image" src="https://github.com/user-attachments/assets/f3b1153f-3d3d-4b79-956e-5c6208537228" />
+
+```
+<img width="1478" height="120" alt="image" src="https://github.com/user-attachments/assets/da128f0e-0adf-45a9-bf2e-322cd1761fd4" />
+```
+<img width="1510" height="136" alt="image" src="https://github.com/user-attachments/assets/d7b49cf4-1874-466a-9fd0-b8f28a3b5300" />
+```
+<img width="1328" height="70" alt="image" src="https://github.com/user-attachments/assets/8aff8a5b-c418-4017-a171-c442edb20e19" />
+```
+<img width="1356" height="216" alt="image" src="https://github.com/user-attachments/assets/42ef9bc5-c5a4-45e5-a9c6-11010af8d8ed" />
+```
 
 ## A-4 Hash Function Analysis
 
