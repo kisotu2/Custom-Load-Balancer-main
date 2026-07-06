@@ -312,10 +312,8 @@ The remaining replicas continued serving requests successfully.
 
 ```
 <img width="1452" height="112" alt="image" src="https://github.com/user-attachments/assets/bd0b84c4-95c1-4824-9b9e-c2f57f3ac290" />
-
 ```
 <img width="2340" height="208" alt="image" src="https://github.com/user-attachments/assets/f3b1153f-3d3d-4b79-956e-5c6208537228" />
-
 ```
 <img width="1478" height="120" alt="image" src="https://github.com/user-attachments/assets/da128f0e-0adf-45a9-bf2e-322cd1761fd4" />
 ```
